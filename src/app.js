@@ -35,7 +35,7 @@ app.use(
     saveUninitialized: false,
     store: MongoStore.create({
       mongoUrl: uri,
-      dbName: "database",
+      dbName: MONGODB_NAME,
     }),
     cookie: {
       secure: "auto",
