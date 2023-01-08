@@ -2,13 +2,17 @@ import mongoose from "mongoose";
 
 const Circulation = mongoose.Schema({
   book: {
-    type: mongoose.Schema.Types.String,
-    ref: "books",
-    required: true,
+    name: {
+      type: String,
+      required: true,
+    },
+    author: {
+      type: String,
+      required: true,
+    },
   },
   member: {
-    type: mongoose.Schema.Types.String,
-    ref: "members",
+    type: String,
     required: true,
   },
   loanDate: {

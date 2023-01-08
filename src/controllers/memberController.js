@@ -25,6 +25,7 @@ export const addMember = async (req, res) => {
   const member = new Member(req.body);
 
   if (
+    !member._id ||
     !member.name ||
     !member.gender ||
     !member.address ||
@@ -34,17 +35,21 @@ export const addMember = async (req, res) => {
     res.status(401).json({
       status: 401,
       message:
-        "Validation error: Member validation failed. Required name, gender, address, email, and phone",
+        "Validation error: Member validation failed. Required id, name, gender, address, email, and phone",
     });
     return;
   }
 
-  const newMember = await member.save();
-  res.status(201).json({
-    status: 201,
-    message: "Member added successfully",
-    data: newMember,
-  });
+  try {
+    const newMember = await member.save();
+    res.status(201).json({
+      status: 201,
+      message: "Member added successfully",
+      data: newMember,
+    });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const updateMember = async (req, res) => {

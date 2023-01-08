@@ -3,6 +3,12 @@ import "mongoose-type-email";
 
 const Member = mongoose.Schema(
   {
+    _id: {
+      type: String,
+      required: true,
+      minLength: 10,
+      maxLength: 10,
+    },
     name: {
       type: String,
       required: true,
@@ -24,7 +30,6 @@ const Member = mongoose.Schema(
       required: true,
       minLength: 11,
       maxLength: 13,
-      required: true,
     },
   },
   {
