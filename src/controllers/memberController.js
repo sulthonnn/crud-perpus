@@ -23,6 +23,7 @@ export const getMember = async (req, res) => {
 
 export const addMember = async (req, res) => {
   const member = new Member(req.body);
+  const result = await Member.findOne(req.params.id).select("_id").lean();
 
   if (
     !member._id ||
@@ -40,15 +41,22 @@ export const addMember = async (req, res) => {
     return;
   }
 
-  try {
-    const newMember = await member.save();
-    res.status(201).json({
-      status: 201,
-      message: "Member added successfully",
-      data: newMember,
+  if (result._id === member._id) {
+    res.status(401).json({
+      status: 401,
+      message: "Member already exists",
     });
-  } catch (error) {
-    console.log(error);
+  } else {
+    try {
+      const newMember = await member.save();
+      res.status(201).json({
+        status: 201,
+        message: "Member added successfully",
+        data: newMember,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 };
 

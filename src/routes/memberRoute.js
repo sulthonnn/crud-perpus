@@ -14,8 +14,8 @@ const memberRouter = express.Router();
 //member
 memberRouter.get("/members", VerifyUser, getMembers);
 memberRouter.get("/member/:id", VerifyUser, getMember);
-memberRouter.post("/add-member", VerifyUser, addMember);
+memberRouter.post("/member", VerifyUser, addMember);
 memberRouter.patch("/member/:id", VerifyUser, updateMember);
-memberRouter.delete("/delete-member/:id", VerifyUser, deleteMember);
+memberRouter.delete("/member/:id", VerifyUser, deleteMember);
 
 export default memberRouter;

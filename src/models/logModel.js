@@ -2,18 +2,15 @@ import mongoose from "mongoose";
 
 const LogBook = mongoose.Schema({
   book: {
-    type: mongoose.Schema.Types.String,
-    ref: "books",
+    type: String,
     required: true,
   },
   member: {
-    type: mongoose.Schema.Types.String,
-    ref: "members",
+    type: String,
     required: true,
   },
   loanDate: {
-    type: mongoose.Schema.Types.String,
-    ref: "circulations",
+    type: String,
     required: true,
   },
   returnDate: {

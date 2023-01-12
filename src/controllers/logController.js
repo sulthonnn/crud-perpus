@@ -28,3 +28,33 @@ export const addLog = async (req, res) => {
     data: newLog,
   });
 };
+
+export const deleteLog = async (req, res) => {
+  const {
+    params: { id },
+  } = req;
+
+  if (!id) {
+    res.status(401).json({
+      status: 401,
+      message: "Validation error: Params _id is not defined",
+    });
+    return;
+  }
+
+  const deletedLog = await LogBook.findByIdAndRemove(id);
+
+  if (!deletedLog) {
+    res.status(501).json({
+      status: 501,
+      message: "Remove log failed. Not implemented",
+    });
+
+    return;
+  }
+
+  res.status(200).json({
+    message: "Success deleted log",
+    data: deletedLog,
+  });
+};

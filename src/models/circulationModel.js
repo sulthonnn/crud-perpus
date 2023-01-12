@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const Circulation = mongoose.Schema({
   book: {
-    name: {
+    title: {
       type: String,
       required: true,
     },
@@ -12,8 +12,14 @@ const Circulation = mongoose.Schema({
     },
   },
   member: {
-    type: String,
-    required: true,
+    id: {
+      type: String,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
   },
   loanDate: {
     type: String,

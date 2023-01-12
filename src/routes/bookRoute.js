@@ -14,8 +14,8 @@ const bookRouter = express.Router();
 //book
 bookRouter.get("/books", VerifyUser, getBooks);
 bookRouter.get("/book/:id", VerifyUser, getBook);
-bookRouter.post("/add-book", VerifyUser, addBook);
+bookRouter.post("/book", VerifyUser, addBook);
 bookRouter.patch("/book/:id", VerifyUser, updateBook);
-bookRouter.delete("/delete-book/:id", VerifyUser, deleteBook);
+bookRouter.delete("/book/:id", VerifyUser, deleteBook);
 
 export default bookRouter;
