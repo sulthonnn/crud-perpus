@@ -2,9 +2,42 @@ import argon2 from "argon2";
 import User from "../models/userModel.js";
 
 export const getUsers = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const search = req.query.search || "";
+
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  const results = {};
+
+  if (endIndex < (await User.countDocuments().exec())) {
+    results.next = {
+      page: page + 1,
+      limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    results.previous = {
+      page: page - 1,
+      limit,
+    };
+  }
+
   try {
-    const users = await User.find().sort({ username: 1 }).select(["-password"]);
-    res.status(200).json(users);
+    results.users = await User.find({
+      $or: [
+        { username: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ],
+    })
+      .limit(limit)
+      .skip(startIndex)
+      .sort({ username: -1 })
+      .select(["-password"])
+      .exec();
+    res.status(200).json(results);
   } catch (error) {
     res.status(404).json(error);
   }

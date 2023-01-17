@@ -1,4 +1,3 @@
-import { verify } from "argon2";
 import express from "express";
 
 import {

@@ -1,10 +1,56 @@
 import Circ from "../models/circulationModel.js";
 
 export const getCirculations = async (req, res) => {
-  try {
-    const circulations = await Circ.find().sort({ loanDate: -1 }).exec();
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const search = req.query.search || "";
 
-    res.status(200).json(circulations);
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  const results = {};
+
+  if (endIndex < (await Circ.countDocuments().exec())) {
+    results.next = {
+      page: page + 1,
+      limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    results.previous = {
+      page: page - 1,
+      limit,
+    };
+  }
+
+  try {
+    results.circulations = await Circ.find({
+      $in: [
+        {
+          book: {
+            $or: [
+              { title: { $regex: search, $options: "i" } },
+              { author: { $regex: search, $options: "i" } },
+            ],
+          },
+        },
+        {
+          member: {
+            $or: [
+              { id: { $regex: search, $options: "i" } },
+              { name: { $regex: search, $options: "i" } },
+            ],
+          },
+        },
+        { loanDate: { $regex: search, $options: "i" } },
+      ],
+    })
+      .limit(limit)
+      .skip(startIndex)
+      .sort({ loanDate: -1 })
+      .exec();
+    res.status(200).json(results);
   } catch (error) {
     res.status(404).json(error);
   }

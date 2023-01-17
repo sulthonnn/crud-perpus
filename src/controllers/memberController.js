@@ -1,9 +1,43 @@
 import Member from "../models/memberModel.js";
 
 export const getMembers = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.search || "";
+
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  const results = {};
+
+  if (endIndex < (await Member.countDocuments().exec())) {
+    results.next = {
+      page: page + 1,
+      limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    results.previous = {
+      page: page - 1,
+      limit,
+    };
+  }
+
   try {
-    const members = await Member.find().sort({ name: 1 });
-    res.status(200).json(members);
+    results.members = await Member.find({
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { address: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { phone: { $regex: search, $options: "i" } },
+      ],
+    })
+      .limit(limit)
+      .skip(startIndex)
+      .sort({ name: 1 })
+      .exec();
+    res.status(200).json(results);
   } catch (error) {
     res.status(404).json(error);
   }

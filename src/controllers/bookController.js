@@ -1,9 +1,44 @@
 import Book from "../models/bookModel.js";
 
 export const getBooks = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.search || "";
+
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  const results = {};
+
+  if (endIndex < (await Book.countDocuments().exec())) {
+    results.next = {
+      page: page + 1,
+      limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    results.previous = {
+      page: page - 1,
+      limit,
+    };
+  }
+
   try {
-    const books = await Book.find().sort({ name: 1 });
-    res.status(200).json(books);
+    results.books = await Book.find({
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } },
+        { author: { $regex: search, $options: "i" } },
+        { publisher: { $regex: search, $options: "i" } },
+        { year: { $regex: search, $options: "i" } },
+      ],
+    })
+      .limit(limit)
+      .skip(startIndex)
+      .sort({ name: 1 })
+      .exec();
+    res.status(200).json(results);
   } catch (error) {
     res.status(404).json(error);
   }

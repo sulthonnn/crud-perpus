@@ -1,17 +1,50 @@
-import LogBook from "../models/logModel.js";
+import Log from "../models/logModel.js";
 
 export const getLogs = async (req, res) => {
-  try {
-    const logs = await LogBook.find().sort({ returnDate: -1 });
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const search = req.query.search || "";
 
-    res.status(200).json(logs);
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  const results = {};
+
+  if (endIndex < (await Log.countDocuments().exec())) {
+    results.next = {
+      page: page + 1,
+      limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    results.previous = {
+      page: page - 1,
+      limit,
+    };
+  }
+
+  try {
+    results.logs = await Log.find({
+      $or: [
+        { book: { $regex: search, $options: "i" } },
+        { member: { $regex: search, $options: "i" } },
+        { loanDate: { $regex: search, $options: "i" } },
+        { returnDate: { $regex: search, $options: "i" } },
+      ],
+    })
+      .limit(limit)
+      .skip(startIndex)
+      .sort({ returnDate: -1 })
+      .exec();
+    res.status(200).json(results);
   } catch (error) {
-    res.status(400).json(error);
+    res.status(404).json(error);
   }
 };
 
 export const addLog = async (req, res) => {
-  const logBook = new LogBook(req.body);
+  const logBook = new Log(req.body);
 
   if (!logBook) {
     res.status(401).json({
@@ -42,7 +75,7 @@ export const deleteLog = async (req, res) => {
     return;
   }
 
-  const deletedLog = await LogBook.findByIdAndRemove(id);
+  const deletedLog = await Log.findByIdAndRemove(id);
 
   if (!deletedLog) {
     res.status(501).json({
