@@ -2,6 +2,7 @@ import express from "express";
 
 import {
   getUser,
+  getPaginatedUsers,
   getUsers,
   addUser,
   updateUser,
@@ -13,6 +14,7 @@ const userRouter = express.Router();
 
 //user
 userRouter.get("/users", VerifyUser, getUsers);
+userRouter.get("/user", VerifyUser, getPaginatedUsers);
 userRouter.get("/user/:id", VerifyUser, getUser);
 userRouter.post("/user", VerifyUser, addUser);
 userRouter.patch("/user/:id", VerifyUser, updateUser);

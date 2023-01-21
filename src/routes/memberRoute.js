@@ -2,6 +2,7 @@ import express from "express";
 
 import {
   getMembers,
+  getPaginatedMembers,
   getMember,
   addMember,
   updateMember,
@@ -13,6 +14,7 @@ const memberRouter = express.Router();
 
 //member
 memberRouter.get("/members", VerifyUser, getMembers);
+memberRouter.get("/member", VerifyUser, getPaginatedMembers);
 memberRouter.get("/member/:id", VerifyUser, getMember);
 memberRouter.post("/member", VerifyUser, addMember);
 memberRouter.patch("/member/:id", VerifyUser, updateMember);

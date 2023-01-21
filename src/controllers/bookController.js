@@ -1,31 +1,37 @@
 import Book from "../models/bookModel.js";
 
 export const getBooks = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
+  try {
+    const books = await Book.find().sort({ name: 1 });
+    return res.status(200).json({ books });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getPaginatedBooks = async (req, res) => {
+  const page = parseInt(req.query.page) || 0;
   const limit = parseInt(req.query.limit) || 10;
   const search = req.query.search || "";
 
-  const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
+  const offset = page * limit;
 
-  const results = {};
+  const totalRows = await Book.count({
+    $or: [
+      { name: { $regex: search, $options: "i" } },
+      { category: { $regex: search, $options: "i" } },
+      { author: { $regex: search, $options: "i" } },
+      { publisher: { $regex: search, $options: "i" } },
+      { year: { $regex: search, $options: "i" } },
+    ],
+  })
+    .sort({ name: 1 })
+    .exec();
 
-  if (endIndex < (await Book.countDocuments().exec())) {
-    results.next = {
-      page: page + 1,
-      limit,
-    };
-  }
-
-  if (startIndex > 0) {
-    results.previous = {
-      page: page - 1,
-      limit,
-    };
-  }
+  const totalPages = Math.ceil(totalRows / limit);
 
   try {
-    results.books = await Book.find({
+    const books = await Book.find({
       $or: [
         { name: { $regex: search, $options: "i" } },
         { category: { $regex: search, $options: "i" } },
@@ -35,10 +41,10 @@ export const getBooks = async (req, res) => {
       ],
     })
       .limit(limit)
-      .skip(startIndex)
+      .skip(offset)
       .sort({ name: 1 })
       .exec();
-    res.status(200).json(results);
+    res.status(200).json({ page, totalRows, totalPages, books });
   } catch (error) {
     res.status(404).json(error);
   }
@@ -59,27 +65,31 @@ export const getBook = async (req, res) => {
 export const addBook = async (req, res) => {
   const book = new Book(req.body);
 
-  if (
-    !book.name ||
-    !book.category ||
-    !book.author ||
-    !book.publisher ||
-    !book.year
-  ) {
-    res.status(401).json({
-      status: 401,
-      message:
-        "Validation error: Book validation failed. Required name, categoty, author, publisher, and year",
-    });
-    return;
-  }
+  try {
+    if (
+      !book.name ||
+      !book.category ||
+      !book.author ||
+      !book.publisher ||
+      !book.year
+    ) {
+      res.status(401).json({
+        status: 401,
+        message:
+          "Validation error: Book validation failed. Required name, categoty, author, publisher, and year",
+      });
+      return;
+    }
 
-  const newBook = await book.save();
-  res.status(201).json({
-    status: 201,
-    message: "Book saved successfully",
-    data: newBook,
-  });
+    const newBook = await book.save();
+    res.status(201).json({
+      status: 201,
+      message: "Book saved successfully",
+      data: newBook,
+    });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const updateBook = async (req, res) => {
@@ -96,21 +106,25 @@ export const updateBook = async (req, res) => {
     return;
   }
 
-  const updatedBook = await Book.findByIdAndUpdate({ _id: id }, body);
+  try {
+    const updatedBook = await Book.findByIdAndUpdate({ _id: id }, body);
 
-  if (!updatedBook) {
-    res
-      .status(501)
-      .json({ status: 501, message: "Edit book failed. Not implemented" });
+    if (!updatedBook) {
+      res
+        .status(501)
+        .json({ status: 501, message: "Edit book failed. Not implemented" });
 
-    return;
+      return;
+    }
+
+    res.status(200).json({
+      status: 200,
+      message: "Book updated successfully",
+      data: updatedBook,
+    });
+  } catch (error) {
+    console.log(error);
   }
-
-  res.status(200).json({
-    status: 200,
-    message: "Book updated successfully",
-    data: updatedBook,
-  });
 };
 
 export const deleteBook = async (req, res) => {
@@ -126,19 +140,22 @@ export const deleteBook = async (req, res) => {
     return;
   }
 
-  const deletedBook = await Book.findByIdAndRemove(id);
+  try {
+    const deletedBook = await Book.findByIdAndRemove(id);
 
-  if (!deletedBook) {
-    res.status(501).json({
-      status: 501,
-      message: "Remove book failed. Not implemented",
+    if (!deletedBook) {
+      res.status(501).json({
+        status: 501,
+        message: "Remove book failed. Not implemented",
+      });
+
+      return;
+    }
+    res.status(200).json({
+      message: "Success deleted book",
+      data: deletedBook,
     });
-
-    return;
+  } catch (error) {
+    console.log(error);
   }
-
-  res.status(200).json({
-    message: "Success deleted book",
-    data: deletedBook,
-  });
 };

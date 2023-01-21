@@ -1,43 +1,76 @@
 import Log from "../models/logModel.js";
 
 export const getLogs = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 20;
+  try {
+    const logs = await Log.find().sort({ returnDate: -1 });
+    return res.status(200).json({ logs });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getPaginatedLogs = async (req, res) => {
+  const page = parseInt(req.query.page) || 0;
+  const limit = parseInt(req.query.limit) || 10;
   const search = req.query.search || "";
 
-  const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
+  const offset = page * limit;
 
-  const results = {};
+  const totalRows = await Log.count({
+    $in: [
+      {
+        book: {
+          $or: [
+            { title: { $regex: search, $options: "i" } },
+            { author: { $regex: search, $options: "i" } },
+          ],
+        },
+      },
+      {
+        member: {
+          $or: [
+            { id: { $regex: search, $options: "i" } },
+            { name: { $regex: search, $options: "i" } },
+          ],
+        },
+      },
+      { loanDate: { $regex: search, $options: "i" } },
+      { returnDate: { $regex: search, $options: "i" } },
+    ],
+  })
+    .sort({ returnDate: -1 })
+    .exec();
 
-  if (endIndex < (await Log.countDocuments().exec())) {
-    results.next = {
-      page: page + 1,
-      limit,
-    };
-  }
-
-  if (startIndex > 0) {
-    results.previous = {
-      page: page - 1,
-      limit,
-    };
-  }
+  const totalPages = Math.ceil(totalRows / limit);
 
   try {
-    results.logs = await Log.find({
-      $or: [
-        { book: { $regex: search, $options: "i" } },
-        { member: { $regex: search, $options: "i" } },
+    const logs = await Log.find({
+      $in: [
+        {
+          book: {
+            $or: [
+              { title: { $regex: search, $options: "i" } },
+              { author: { $regex: search, $options: "i" } },
+            ],
+          },
+        },
+        {
+          member: {
+            $or: [
+              { id: { $regex: search, $options: "i" } },
+              { name: { $regex: search, $options: "i" } },
+            ],
+          },
+        },
         { loanDate: { $regex: search, $options: "i" } },
         { returnDate: { $regex: search, $options: "i" } },
       ],
     })
       .limit(limit)
-      .skip(startIndex)
+      .skip(offset)
       .sort({ returnDate: -1 })
       .exec();
-    res.status(200).json(results);
+    res.status(200).json({ page, totalRows, totalPages, logs });
   } catch (error) {
     res.status(404).json(error);
   }
@@ -54,12 +87,16 @@ export const addLog = async (req, res) => {
     return;
   }
 
-  const newLog = await logBook.save();
-  res.status(201).json({
-    status: 201,
-    message: "Log added successfully",
-    data: newLog,
-  });
+  try {
+    const newLog = await logBook.save();
+    res.status(201).json({
+      status: 201,
+      message: "Log added successfully",
+      data: newLog,
+    });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const deleteLog = async (req, res) => {
@@ -75,19 +112,23 @@ export const deleteLog = async (req, res) => {
     return;
   }
 
-  const deletedLog = await Log.findByIdAndRemove(id);
+  try {
+    const deletedLog = await Log.findByIdAndRemove(id);
 
-  if (!deletedLog) {
-    res.status(501).json({
-      status: 501,
-      message: "Remove log failed. Not implemented",
+    if (!deletedLog) {
+      res.status(501).json({
+        status: 501,
+        message: "Remove log failed. Not implemented",
+      });
+
+      return;
+    }
+
+    res.status(200).json({
+      message: "Success deleted log",
+      data: deletedLog,
     });
-
-    return;
+  } catch (error) {
+    console.log(error);
   }
-
-  res.status(200).json({
-    message: "Success deleted log",
-    data: deletedLog,
-  });
 };

@@ -2,42 +2,45 @@ import argon2 from "argon2";
 import User from "../models/userModel.js";
 
 export const getUsers = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 20;
+  try {
+    const users = await User.find().sort({ name: 1 });
+    return res.status(200).json({ users });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getPaginatedUsers = async (req, res) => {
+  const page = parseInt(req.query.page) || 0;
+  const limit = parseInt(req.query.limit) || 10;
   const search = req.query.search || "";
 
-  const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
+  const offset = page * limit;
 
-  const results = {};
+  const totalRows = await User.count({
+    $or: [
+      { username: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+    ],
+  })
+    .sort({ username: 1 })
+    .exec();
 
-  if (endIndex < (await User.countDocuments().exec())) {
-    results.next = {
-      page: page + 1,
-      limit,
-    };
-  }
-
-  if (startIndex > 0) {
-    results.previous = {
-      page: page - 1,
-      limit,
-    };
-  }
+  const totalPages = Math.ceil(totalRows / limit);
 
   try {
-    results.users = await User.find({
+    const users = await User.find({
       $or: [
         { username: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } },
       ],
     })
       .limit(limit)
-      .skip(startIndex)
-      .sort({ username: -1 })
+      .skip(offset)
+      .sort({ username: 1 })
       .select(["-password"])
       .exec();
-    res.status(200).json(results);
+    res.status(200).json({ page, totalRows, totalPages, users });
   } catch (error) {
     res.status(404).json(error);
   }
@@ -77,17 +80,23 @@ export const addUser = async (req, res) => {
     });
     return;
   }
+
   const hashPassword = await argon2.hash(password);
-  const newUser = await User.create({
-    username,
-    email,
-    password: hashPassword,
-  });
-  res.status(201).json({
-    status: 201,
-    message: "User saved successfully",
-    data: newUser,
-  });
+
+  try {
+    const newUser = await User.create({
+      username,
+      email,
+      password: hashPassword,
+    });
+    res.status(201).json({
+      status: 201,
+      message: "User saved successfully",
+      data: newUser,
+    });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const updateUser = async (req, res) => {
@@ -120,29 +129,33 @@ export const updateUser = async (req, res) => {
     return;
   }
 
-  const updatedUser = await User.findByIdAndUpdate(
-    { _id: id },
-    {
-      username,
-      email,
-      password: hashPassword,
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      { _id: id },
+      {
+        username,
+        email,
+        password: hashPassword,
+      }
+    );
+
+    if (!updatedUser) {
+      res.status(501).json({
+        status: 501,
+        message: "Update User failed. Not implemented",
+      });
+
+      return;
     }
-  );
 
-  if (!updatedUser) {
-    res.status(501).json({
-      status: 501,
-      message: "Update User failed. Not implemented",
+    res.status(200).json({
+      status: 200,
+      message: "User updated successfully",
+      data: updatedUser,
     });
-
-    return;
+  } catch (error) {
+    console.log(error);
   }
-
-  res.status(200).json({
-    status: 200,
-    message: "User updated successfully",
-    data: updatedUser,
-  });
 };
 
 export const deleteUser = async (req, res) => {
@@ -158,19 +171,23 @@ export const deleteUser = async (req, res) => {
     return;
   }
 
-  const deletedUser = await User.findByIdAndRemove(id);
+  try {
+    const deletedUser = await User.findByIdAndRemove(id);
 
-  if (!deletedUser) {
-    res.status(501).json({
-      status: 501,
-      message: "Remove User failed. Not implemented",
+    if (!deletedUser) {
+      res.status(501).json({
+        status: 501,
+        message: "Remove User failed. Not implemented",
+      });
+
+      return;
+    }
+
+    res.status(200).json({
+      message: "Success deleted User",
+      data: deletedUser,
     });
-
-    return;
+  } catch (error) {
+    console.log(error);
   }
-
-  res.status(200).json({
-    message: "Success deleted User",
-    data: deletedUser,
-  });
 };

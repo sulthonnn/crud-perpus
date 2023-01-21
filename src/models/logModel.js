@@ -2,12 +2,24 @@ import mongoose from "mongoose";
 
 const LogBook = mongoose.Schema({
   book: {
-    type: String,
-    required: true,
+    title: {
+      type: String,
+      required: true,
+    },
+    author: {
+      type: String,
+      required: true,
+    },
   },
   member: {
-    type: String,
-    required: true,
+    id: {
+      type: String,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
   },
   loanDate: {
     type: String,

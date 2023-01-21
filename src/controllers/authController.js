@@ -29,6 +29,7 @@ export const Login = async (req, res) => {
     id,
     username,
     email,
+    message: "Login successfully",
   });
 };
 

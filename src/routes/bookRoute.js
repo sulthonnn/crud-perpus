@@ -2,6 +2,7 @@ import express from "express";
 
 import {
   getBooks,
+  getPaginatedBooks,
   getBook,
   addBook,
   updateBook,
@@ -13,6 +14,7 @@ const bookRouter = express.Router();
 
 //book
 bookRouter.get("/books", VerifyUser, getBooks);
+bookRouter.get("/book", VerifyUser, getPaginatedBooks);
 bookRouter.get("/book/:id", VerifyUser, getBook);
 bookRouter.post("/book", VerifyUser, addBook);
 bookRouter.patch("/book/:id", VerifyUser, updateBook);

@@ -1,31 +1,36 @@
 import Member from "../models/memberModel.js";
 
 export const getMembers = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
+  try {
+    const members = await Member.find().sort({name: 1})
+    return res.status(200).json({members})
+  } catch (error) {
+  console.log(error);    
+  }
+}
+
+export const getPaginatedMembers = async (req, res) => {
+  const page = parseInt(req.query.page) || 0;
   const limit = parseInt(req.query.limit) || 10;
   const search = req.query.search || "";
 
-  const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
+  const offset = page * limit;
 
-  const results = {};
+  const totalRows = await Member.count({
+    $or: [
+      { name: { $regex: search, $options: "i" } },
+      { address: { $regex: search, $options: "i" } },
+      { email: { $regex: search, $options: "i" } },
+      { phone: { $regex: search, $options: "i" } },
+    ],
+  })
+    .sort({ name: 1 })
+    .exec();
 
-  if (endIndex < (await Member.countDocuments().exec())) {
-    results.next = {
-      page: page + 1,
-      limit,
-    };
-  }
-
-  if (startIndex > 0) {
-    results.previous = {
-      page: page - 1,
-      limit,
-    };
-  }
+  const totalPages = Math.ceil(totalRows / limit);
 
   try {
-    results.members = await Member.find({
+    const members = await Member.find({
       $or: [
         { name: { $regex: search, $options: "i" } },
         { address: { $regex: search, $options: "i" } },
@@ -34,10 +39,10 @@ export const getMembers = async (req, res) => {
       ],
     })
       .limit(limit)
-      .skip(startIndex)
+      .skip(offset)
       .sort({ name: 1 })
       .exec();
-    res.status(200).json(results);
+    res.status(200).json({ page, totalRows, totalPages, members });
   } catch (error) {
     res.status(404).json(error);
   }
@@ -57,40 +62,46 @@ export const getMember = async (req, res) => {
 
 export const addMember = async (req, res) => {
   const member = new Member(req.body);
-  const result = await Member.findOne(req.params.id).select("_id").lean();
+  const members = await Member.find();
 
-  if (
-    !member._id ||
-    !member.name ||
-    !member.gender ||
-    !member.address ||
-    !member.email ||
-    !member.phone
-  ) {
-    res.status(401).json({
-      status: 401,
-      message:
-        "Validation error: Member validation failed. Required id, name, gender, address, email, and phone",
-    });
-    return;
-  }
+  const id = members.map((id) => {
+    return id._id;
+  });
 
-  if (result._id === member._id) {
-    res.status(401).json({
-      status: 401,
-      message: "Member already exists",
-    });
-  } else {
-    try {
-      const newMember = await member.save();
-      res.status(201).json({
-        status: 201,
-        message: "Member added successfully",
-        data: newMember,
+  try {
+    if (
+      !member._id ||
+      !member.name ||
+      !member.gender ||
+      !member.address ||
+      !member.email ||
+      !member.phone
+    ) {
+      res.status(401).json({
+        status: 401,
+        message:
+          "Validation error: Member validation failed. Required id, name, gender, address, email, and phone",
       });
-    } catch (error) {
-      console.log(error);
+      return;
     }
+
+    if (id.includes(member._id)) {
+      res.status(400).json({
+        status: 400,
+        message: "Member already exists",
+      });
+
+      return;
+    }
+
+    const newMember = await member.save();
+    res.status(201).json({
+      status: 201,
+      message: "Member added successfully",
+      data: newMember,
+    });
+  } catch (error) {
+    console.log(error);
   }
 };
 
@@ -100,28 +111,33 @@ export const updateMember = async (req, res) => {
     body,
   } = req;
 
-  if (!body || !id) {
-    res.status(404).json({
-      status: 404,
-      message: "Member not found",
+  try {
+    const updatedMember = await Member.findByIdAndUpdate({ _id: id }, body);
+
+    if (!body || !id) {
+      res.status(404).json({
+        status: 404,
+        message: "Member not found",
+      });
+      return;
+    }
+
+    if (!updatedMember) {
+      res.status(501).json({
+        status: 501,
+        message: "Edit member failed. Not implemented",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      status: 200,
+      message: "Member updated successfully",
+      data: updatedMember,
     });
-    return;
+  } catch (error) {
+    console.log(error);
   }
-
-  const updatedMember = await Member.findByIdAndUpdate({ _id: id }, body);
-
-  if (!updatedMember) {
-    res.status(501).json({
-      status: 501,
-      message: "Edit member failed. Not implemented",
-    });
-  }
-
-  res.status(200).json({
-    status: 200,
-    message: "Member updated successfully",
-    data: updatedMember,
-  });
 };
 
 export const deleteMember = async (req, res) => {
@@ -137,19 +153,23 @@ export const deleteMember = async (req, res) => {
     return;
   }
 
-  const deletedMember = await Member.findByIdAndRemove(id);
+  try {
+    const deletedMember = await Member.findByIdAndRemove(id);
 
-  if (!deletedMember) {
-    res.status(501).json({
-      status: 501,
-      message: "Remove member failed. Not implemented",
+    if (!deletedMember) {
+      res.status(501).json({
+        status: 501,
+        message: "Remove member failed. Not implemented",
+      });
+
+      return;
+    }
+
+    res.status(200).json({
+      message: "Success deleted member",
+      data: deletedMember,
     });
-
-    return;
+  } catch (error) {
+    console.log(error);
   }
-
-  res.status(200).json({
-    message: "Success deleted member",
-    data: deletedMember,
-  });
 };

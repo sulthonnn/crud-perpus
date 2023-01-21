@@ -1,31 +1,49 @@
 import Circ from "../models/circulationModel.js";
 
 export const getCirculations = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 20;
+  try {
+    const circulations = await Circ.find().sort({ loanDate: -1 });
+    return res.status(200).json({ circulations });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getPaginatedCirculations = async (req, res) => {
+  const page = parseInt(req.query.page) || 0;
+  const limit = parseInt(req.query.limit) || 10;
   const search = req.query.search || "";
 
-  const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
+  const offset = page * limit;
 
-  const results = {};
+  const totalRows = await Circ.count({
+    $in: [
+      {
+        book: {
+          $or: [
+            { title: { $regex: search, $options: "i" } },
+            { author: { $regex: search, $options: "i" } },
+          ],
+        },
+      },
+      {
+        member: {
+          $or: [
+            { id: { $regex: search, $options: "i" } },
+            { name: { $regex: search, $options: "i" } },
+          ],
+        },
+      },
+      { loanDate: { $regex: search, $options: "i" } },
+    ],
+  })
+    .sort({ loanDate: -1 })
+    .exec();
 
-  if (endIndex < (await Circ.countDocuments().exec())) {
-    results.next = {
-      page: page + 1,
-      limit,
-    };
-  }
-
-  if (startIndex > 0) {
-    results.previous = {
-      page: page - 1,
-      limit,
-    };
-  }
+  const totalPages = Math.ceil(totalRows / limit);
 
   try {
-    results.circulations = await Circ.find({
+    const circulations = await Circ.find({
       $in: [
         {
           book: {
@@ -47,10 +65,10 @@ export const getCirculations = async (req, res) => {
       ],
     })
       .limit(limit)
-      .skip(startIndex)
+      .skip(offset)
       .sort({ loanDate: -1 })
       .exec();
-    res.status(200).json(results);
+    res.status(200).json({ page, totalRows, totalPages, circulations });
   } catch (error) {
     res.status(404).json(error);
   }
@@ -106,13 +124,17 @@ export const updateCirculation = async (req, res) => {
     return;
   }
 
-  const updatedCirculation = await Circ.findByIdAndUpdate({ _id: id }, body);
+  try {
+    const updatedCirculation = await Circ.findByIdAndUpdate({ _id: id }, body);
 
-  res.status(200).json({
-    status: 200,
-    message: "Circulation updated successfully",
-    data: updatedCirculation,
-  });
+    res.status(200).json({
+      status: 200,
+      message: "Circulation updated successfully",
+      data: updatedCirculation,
+    });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const deleteCirculation = async (req, res) => {
@@ -129,19 +151,23 @@ export const deleteCirculation = async (req, res) => {
     return;
   }
 
-  const deletedCirculation = await Circ.findByIdAndRemove(id);
+  try {
+    const deletedCirculation = await Circ.findByIdAndRemove(id);
 
-  if (!deletedCirculation) {
-    res.status(501).json({
-      status: 501,
-      message: "Remove circulation failed. Not implemented",
+    if (!deletedCirculation) {
+      res.status(501).json({
+        status: 501,
+        message: "Remove circulation failed. Not implemented",
+      });
+
+      return;
+    }
+
+    res.status(200).json({
+      message: "Success deleted circulation",
+      data: deletedCirculation,
     });
-
-    return;
+  } catch (error) {
+    console.log(error);
   }
-
-  res.status(200).json({
-    message: "Success deleted circulation",
-    data: deletedCirculation,
-  });
 };
