@@ -73,8 +73,8 @@ export const addBook = async (req, res) => {
       !book.publisher ||
       !book.year
     ) {
-      res.status(401).json({
-        status: 401,
+      res.status(400).json({
+        status: 400,
         message:
           "Validation error: Book validation failed. Required name, categoty, author, publisher, and year",
       });
@@ -133,8 +133,8 @@ export const deleteBook = async (req, res) => {
   } = req;
 
   if (!id) {
-    res.status(401).json({
-      status: 401,
+    res.status(400).json({
+      status: 400,
       message: "Validation error: Params _id is not defined",
     });
     return;

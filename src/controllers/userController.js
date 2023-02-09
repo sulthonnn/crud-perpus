@@ -64,8 +64,8 @@ export const addUser = async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
 
   if (!username || !email || !password || !confirmPassword) {
-    res.status(401).json({
-      status: 401,
+    res.status(400).json({
+      status: 400,
       message:
         "Validation error: User validation failed. Required username, email, password, and confirm password",
     });
@@ -73,8 +73,8 @@ export const addUser = async (req, res) => {
   }
 
   if (password !== confirmPassword) {
-    res.status(401).json({
-      status: 401,
+    res.status(400).json({
+      status: 400,
       message:
         "Validation error: User validation failed. Passwords do not match",
     });
@@ -84,7 +84,7 @@ export const addUser = async (req, res) => {
   const hashPassword = await argon2.hash(password);
 
   try {
-    const newUser = await User.create({
+    await User.create({
       username,
       email,
       password: hashPassword,
@@ -92,7 +92,6 @@ export const addUser = async (req, res) => {
     res.status(201).json({
       status: 201,
       message: "User saved successfully",
-      data: newUser,
     });
   } catch (error) {
     console.log(error);
@@ -121,8 +120,8 @@ export const updateUser = async (req, res) => {
   }
 
   if (password !== confirmPassword) {
-    res.status(401).json({
-      status: 401,
+    res.status(400).json({
+      status: 400,
       message:
         "Validation error: User validation failed. Passwords do not match",
     });
@@ -164,8 +163,8 @@ export const deleteUser = async (req, res) => {
   } = req;
 
   if (!id) {
-    res.status(401).json({
-      status: 401,
+    res.status(400).json({
+      status: 400,
       message: "Validation error: Params _id is not defined",
     });
     return;

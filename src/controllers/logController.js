@@ -80,8 +80,8 @@ export const addLog = async (req, res) => {
   const logBook = new Log(req.body);
 
   if (!logBook) {
-    res.status(401).json({
-      status: 401,
+    res.status(400).json({
+      status: 400,
       message: "Validation error. Required bookId and memberId",
     });
     return;
@@ -105,8 +105,8 @@ export const deleteLog = async (req, res) => {
   } = req;
 
   if (!id) {
-    res.status(401).json({
-      status: 401,
+    res.status(400).json({
+      status: 400,
       message: "Validation error: Params _id is not defined",
     });
     return;

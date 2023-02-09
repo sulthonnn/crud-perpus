@@ -2,12 +2,12 @@ import Member from "../models/memberModel.js";
 
 export const getMembers = async (req, res) => {
   try {
-    const members = await Member.find().sort({name: 1})
-    return res.status(200).json({members})
+    const members = await Member.find().sort({ name: 1 });
+    return res.status(200).json({ members });
   } catch (error) {
-  console.log(error);    
+    console.log(error);
   }
-}
+};
 
 export const getPaginatedMembers = async (req, res) => {
   const page = parseInt(req.query.page) || 0;
@@ -77,8 +77,8 @@ export const addMember = async (req, res) => {
       !member.email ||
       !member.phone
     ) {
-      res.status(401).json({
-        status: 401,
+      res.status(400).json({
+        status: 400,
         message:
           "Validation error: Member validation failed. Required id, name, gender, address, email, and phone",
       });
@@ -146,8 +146,8 @@ export const deleteMember = async (req, res) => {
   } = req;
 
   if (!id) {
-    res.status(401).json({
-      status: 401,
+    res.status(400).json({
+      status: 400,
       message: "Validation error: Params _id is not defined",
     });
     return;
