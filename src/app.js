@@ -1,5 +1,5 @@
 import express from "express";
-import cors from "cors";
+// import cors from "cors";
 import mongoose from "mongoose";
 import session from "express-session";
 import MongoStore from "connect-mongo";
@@ -38,11 +38,12 @@ app.use(
   })
 );
 
-app.use(
-  cors({
-    origin: "https://stulib.netlify.app",
-  })
-);
+// app.use(
+//   cors({
+//     credentials: true,
+//     origin: "https://stulib.netlify.app",
+//   })
+// );
 
 app.use(express.json());
 app.use(userRouter);
