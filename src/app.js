@@ -41,7 +41,7 @@ app.use(
 app.use(
   cors({
     credentials: true,
-    origin: "stulib.netlify.app",
+    origin: "https://stulib.netlify.app",
   })
 );
 
