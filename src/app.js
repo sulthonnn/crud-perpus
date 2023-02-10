@@ -41,7 +41,7 @@ app.use(
 app.use(
   cors({
     credentials: true,
-    origin: "https://fair-gold-cobra-cape.cyclic.app",
+    origin: "https://stulib.netlify.app",
   })
 );
 
