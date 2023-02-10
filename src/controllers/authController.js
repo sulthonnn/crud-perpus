@@ -2,7 +2,7 @@ import User from "../models/userModel.js";
 import argon2 from "argon2";
 
 export const Login = async (req, res) => {
-  const user = await User.findOne({
+  const user = await User.find({
     email: req.body.email,
     password: req.body.password,
   });
