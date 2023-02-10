@@ -15,16 +15,10 @@ dotenv.config();
 
 const app = express();
 
-const {
-  APP_PORT,
-  MONGODB_NAME,
-  MONGODB_USERNAME,
-  MONGODB_PASSWORD,
-  SESSION_SECRET,
-} = process.env;
+const { APP_PORT, MONGODB_NAME, DB, SESSION_SECRET } = process.env;
 
 // mongodb+srv://username:<password>@cluster0.jwhegfm.mongodb.net/?retryWrites=true&w=majority
-const uri = `mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@cluster0.jwhegfm.mongodb.net/${MONGODB_NAME}?retryWrites=true&w=majority`;
+const uri = DB;
 
 const options = { useNewUrlParser: true, useUnifiedTopology: true };
 

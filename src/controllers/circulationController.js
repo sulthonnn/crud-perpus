@@ -140,7 +140,6 @@ export const updateCirculation = async (req, res) => {
 export const deleteCirculation = async (req, res) => {
   const {
     params: { id },
-    body,
   } = req;
 
   if (!id) {
