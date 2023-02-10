@@ -4,6 +4,7 @@ import argon2 from "argon2";
 export const Login = async (req, res) => {
   const user = await User.findOne({
     email: req.body.email,
+    password: req.body.password,
   });
 
   if (!user) {
