@@ -41,7 +41,9 @@ export const Me = async (req, res) => {
     return;
   }
 
-  const user = await User.findById(req.session.userId).select(["-password"]);
+  const user = await User.findOne({ id: req.session.userId }).select([
+    "-password",
+  ]);
 
   if (!user) {
     res.status(404).json({

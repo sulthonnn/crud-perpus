@@ -46,12 +46,12 @@ app.use(
 );
 
 app.use(express.json());
+app.use(authRouter);
 app.use(userRouter);
 app.use(bookRouter);
 app.use(memberRouter);
 app.use(circulationRouter);
 app.use(logRouter);
-app.use(authRouter);
 
 await mongoose
   .connect(uri, options)
