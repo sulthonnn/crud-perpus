@@ -8,7 +8,7 @@ export const VerifyUser = async (req, res, next) => {
     return;
   }
 
-  const user = await User.findOne({ id: req.session.userId });
+  const user = await User.findById(req.session.userId);
 
   if (!user) {
     res.status(404).json({

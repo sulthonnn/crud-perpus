@@ -34,16 +34,16 @@ export const Login = async (req, res) => {
 };
 
 export const Me = async (req, res) => {
-  if (!req.session.userId) {
+  if (!req.session || !req.session.userId) {
     res.status(401).json({
       message: "Unauthorized, please login first",
     });
     return;
   }
 
-  const user = await User.findOne({ id: req.session.userId }).select([
-    "-password",
-  ]);
+  const user = await User.findById(req.session.userId)
+    .select(["-password"])
+    .exec();
 
   if (!user) {
     res.status(404).json({
