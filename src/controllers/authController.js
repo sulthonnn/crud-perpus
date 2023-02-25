@@ -32,7 +32,7 @@ export const Login = async (req, res) => {
     email,
     message: "Login successfully",
   });
-  response.send(req.session.userId);
+  res.send(req.session.userId);
 };
 
 export const Me = async (req, res) => {

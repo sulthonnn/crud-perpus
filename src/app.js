@@ -32,7 +32,6 @@ app.use(
       dbName: MONGODB_NAME,
     }),
     cookie: {
-      sameSite: false,
       secure: "auto",
       maxAge: 1000 * 60 * 60 * 24,
     },
