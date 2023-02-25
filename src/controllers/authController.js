@@ -1,6 +1,5 @@
 import User from "../models/userModel.js";
 import argon2 from "argon2";
-import { response } from "express";
 
 export const Login = async (req, res) => {
   const user = await User.findOne({
