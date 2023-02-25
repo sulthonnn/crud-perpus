@@ -26,13 +26,13 @@ export const Login = async (req, res) => {
   const id = user.id;
   const username = user.username;
   const email = user.email;
+  res.send(req.session.userId);
   res.status(200).json({
     id,
     username,
     email,
     message: "Login successfully",
   });
-  res.send(req.session.userId);
 };
 
 export const Me = async (req, res) => {
