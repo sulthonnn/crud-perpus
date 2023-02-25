@@ -26,12 +26,13 @@ app.use(
   session({
     secret: SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     store: MongoStore.create({
       mongoUrl: uri,
       dbName: MONGODB_NAME,
     }),
     cookie: {
+      sameSite: false,
       secure: "auto",
       maxAge: 1000 * 60 * 60 * 24,
     },
@@ -41,7 +42,7 @@ app.use(
 app.use(
   cors({
     credentials: true,
-    origin: "https://stulib.netlify.app",
+    origin: ["http://localhost:3000", "stulib.netlify.app"],
   })
 );
 
