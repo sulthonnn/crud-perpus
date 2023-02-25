@@ -42,7 +42,7 @@ app.use(
 app.use(
   cors({
     credentials: true,
-    origin: ["http://localhost:3000", "stulib.netlify.app"],
+    origin: ["http://localhost:3000", "https://stulib.netlify.app"],
   })
 );
 
