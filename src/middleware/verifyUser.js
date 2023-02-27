@@ -1,14 +1,14 @@
 import User from "../models/userModel.js";
 
 export const VerifyUser = async (req, res, next) => {
-  if (!req.session.userId) {
+  if (!req.session) {
     res.status(401).json({
       message: "Unauthorized, please login first",
     });
     return;
   }
 
-  const user = await User.findById(req.session.userId);
+  const user = await User.findOne({ username });
 
   if (!user) {
     res.status(404).json({
