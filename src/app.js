@@ -34,8 +34,6 @@ app.use(
     cookie: {
       secure: "auto",
       maxAge: 1000 * 60 * 60 * 24,
-      httpOnly: true,
-      sameSite: "lax",
     },
   })
 );
