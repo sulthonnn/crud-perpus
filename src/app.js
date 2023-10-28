@@ -1,5 +1,5 @@
 import express from "express";
-// import cors from "cors";
+import cors from "cors";
 import mongoose from "mongoose";
 import session from "express-session";
 import MongoStore from "connect-mongo";
@@ -19,7 +19,7 @@ const { APP_PORT, MONGODB_NAME, DB, SESSION_SECRET } = process.env;
 
 // mongodb+srv://username:<password>@cluster0.jwhegfm.mongodb.net/?retryWrites=true&w=majority
 const uri = DB;
-
+console.log(DB);
 const options = { useNewUrlParser: true, useUnifiedTopology: true };
 
 app.use(
@@ -38,13 +38,10 @@ app.use(
   })
 );
 
-// app.use(
-//   cors({
-//     credentials: true,
-//     origin: "https://stulib.netlify.app",
-//   })
-// );
-
+app.use(cors({
+  origin:"*",
+  credentials:true
+}))
 app.use(express.json());
 app.use(userRouter);
 app.use(bookRouter);
@@ -53,7 +50,8 @@ app.use(circulationRouter);
 app.use(logRouter);
 app.use(authRouter);
 
-await mongoose
+const run = async() =>{
+  await mongoose
   .connect(uri, options)
   .then(() => {
     app.listen(APP_PORT, () => {
@@ -63,3 +61,5 @@ await mongoose
   .catch((error) => {
     throw error;
   });
+} 
+run();
