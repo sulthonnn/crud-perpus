@@ -39,7 +39,7 @@ app.use(
 );
 
 app.use(cors({
-  origin: ["http://localhost:3000", "https://stulib.netlify.app"],
+  origin: '*',
   credentials: true,
 }));
 app.use(express.json());
