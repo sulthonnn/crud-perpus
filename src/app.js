@@ -19,6 +19,7 @@ const { APP_PORT, MONGODB_NAME, DB, SESSION_SECRET } = process.env;
 
 // mongodb+srv://username:<password>@cluster0.jwhegfm.mongodb.net/?retryWrites=true&w=majority
 const uri = DB;
+console.log(DB);
 const options = { useNewUrlParser: true, useUnifiedTopology: true };
 
 app.use(
@@ -37,7 +38,10 @@ app.use(
   })
 );
 
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:3000", "https://stulib.netlify.app"],
+  credentials: true,
+}));
 app.use(express.json());
 app.use(userRouter);
 app.use(bookRouter);
